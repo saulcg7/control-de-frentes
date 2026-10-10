@@ -49,7 +49,7 @@
     (function () {
       var splash = document.getElementById('splash');
       var frame = document.getElementById('app');
-      if (APP_URL.indexOf('https://script.google.com/macros/s/AKfycbxdwgNgUspdH_wz64dCD5zlYPw0onCCPzIeI0zPmgMnuQsLmlpZOW_Z28ZRmyUOM7jz/exec') >= 0) {
+      if (APP_URL.indexOf('PEGA_AQUI') >= 0) {
         document.getElementById('bar').style.display = 'none';
         splash.insertAdjacentHTML('beforeend', '<div class="setup">Falta configurar la dirección de la app.<br>' +
           'Edita <code>index.html</code> y reemplaza <code>APP_URL</code> por tu URL que termina en <code>/exec</code>.</div>');
