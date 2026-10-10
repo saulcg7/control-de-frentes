@@ -28,6 +28,12 @@
     #help { display: none; max-width: 380px; color: #b9cde0; font-size: 13px; }
     #help a { color: #31c7df; }
     .setup { color: #edf5fd; max-width: 460px; }
+    #open { display: none; position: fixed; left: 10px; bottom: 10px; z-index: 3; width: 30px; height: 30px; border-radius: 50%;
+      align-items: center; justify-content: center; text-decoration: none; font: 16px sans-serif;
+      background: rgba(15,31,54,.75); color: #31c7df; opacity: .55; }
+    #open:hover { opacity: 1; }
+    .go { background: #31c7df; color: #0f1f36; font-weight: 700; padding: 10px 18px; border-radius: 10px; text-decoration: none; }
+    .setup.small { font-size: 13px; color: #b9cde0; }
     .setup code { background: #1a2f4f; padding: 2px 6px; border-radius: 4px; color: #31c7df; }
   </style>
 </head>
@@ -40,10 +46,16 @@
       Si tienes varias cuentas de Google abiertas, usa un perfil con solo tu Gmail.</div>
   </div>
   <iframe id="app" title="Control de Frentes" allow="clipboard-write; clipboard-read"></iframe>
+  <!-- Solo en modo marco: si ves un error de Google (400/401), ábrela directo -->
+  <a id="open" href="#" target="_blank" rel="noopener" title="¿Error de Google? Abrir la app directamente">↗</a>
 
   <script>
     /* ====== ÚNICO DATO QUE DEBES CAMBIAR: la URL /exec de tu implementación de Apps Script ====== */
     var APP_URL = 'https://script.google.com/macros/s/AKfycbxdwgNgUspdH_wz64dCD5zlYPw0onCCPzIeI0zPmgMnuQsLmlpZOW_Z28ZRmyUOM7jz/exec';
+    /* MODO: 'directo' = abre la app de Google en la ventana instalada (funciona en cualquier navegador).
+             'marco'   = la muestra dentro de esta página (requiere cookies de terceros y una sola cuenta).
+       También puedes forzarlo en la dirección: ...github.io/control-de-frentes/?modo=marco             */
+    var MODO = 'directo';
     /* =========================================================================================== */
 
     (function () {
@@ -56,16 +68,32 @@
         return;
       }
       document.getElementById('direct').href = APP_URL;
-      // La sección (#/portafolio, etc.) no se transmite: la app abre en su dashboard.
+      if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function () {});
+      var q = (location.search.match(/[?&]modo=(marco|directo)/) || [])[1];
+      var installed = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
+      if ((q || MODO) === 'directo') {
+        if (installed) {
+          // App instalada: navegación de primer nivel, Google usa tu sesión normal (sin cookies de terceros).
+          location.replace(APP_URL);
+          return;
+        }
+        // En el navegador: página de inicio para instalar la app o abrirla.
+        document.getElementById('bar').style.display = 'none';
+        splash.insertAdjacentHTML('beforeend',
+          '<a class="go" href="' + APP_URL + '">Abrir Control de Frentes</a>' +
+          '<div class="setup small">Para instalarla con este icono: en Chrome o Edge usa el botón de instalar de la barra de direcciones; ' +
+          'en Android, menú ⋮ › Instalar app; en iPhone, Compartir › Agregar a pantalla de inicio.</div>');
+        return;
+      }
+      // Modo marco. La sección (#/portafolio, etc.) no se transmite: la app abre en su dashboard.
+      document.getElementById('open').href = APP_URL;
+      document.getElementById('open').style.display = 'flex';
       frame.src = APP_URL;
       frame.addEventListener('load', function () {
         splash.classList.add('hide');
         setTimeout(function () { splash.style.display = 'none'; }, 400);
       });
       setTimeout(function () { document.getElementById('help').style.display = 'block'; }, 7000);
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
-      }
     })();
   </script>
 </body>
